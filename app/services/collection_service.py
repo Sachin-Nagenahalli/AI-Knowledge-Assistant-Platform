@@ -1,3 +1,5 @@
+from fastapi import HTTPException
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from app.models.collection import Collection
@@ -14,9 +16,17 @@ class CollectionService:
             description=data.description
         )
 
-        self.db.add(collection)
-        self.db.commit()
-        self.db.refresh(collection)
+        try:
+            self.db.add(collection)
+            self.db.commit()
+            self.db.refresh(collection)
+
+        except IntegrityError:
+            self.db.rollback()
+            raise HTTPException(
+                status_code=409,
+                detail="Collection already exists"
+            )
 
         return collection
 

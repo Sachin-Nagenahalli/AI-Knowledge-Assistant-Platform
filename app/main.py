@@ -4,7 +4,7 @@ from app.models.collection import Collection
 from app.models.document import Document
 from app.api.collection import router as collection_router
 from app.core.config import settings
-
+from app.api.document import router as document_router
 app = FastAPI(
     title=settings.PROJECT_NAME,
     version=settings.API_VERSION,
@@ -26,3 +26,4 @@ def health():
 
 
 app.include_router(collection_router)
+app.include_router(document_router)
