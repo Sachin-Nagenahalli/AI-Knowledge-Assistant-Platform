@@ -1,0 +1,23 @@
+from sqlalchemy import create_engine
+from sqlalchemy.orm import declarative_base, sessionmaker
+
+from app.core.config import settings
+
+
+DATABASE_URL = f"sqlite:///{settings.SQLITE_DB_PATH}"
+
+
+engine = create_engine(
+    DATABASE_URL,
+    echo=False
+)
+
+
+SessionLocal = sessionmaker(
+    autocommit=False,
+    autoflush=False,
+    bind=engine
+)
+
+
+Base = declarative_base()
