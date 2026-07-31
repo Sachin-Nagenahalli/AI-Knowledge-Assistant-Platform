@@ -4,7 +4,7 @@ from pathlib import Path
 
 from fastapi import HTTPException, UploadFile
 from sqlalchemy.orm import Session
-
+from app.indexing.indexing_service import index_document
 from app.core.config import settings
 from app.models.collection import Collection
 from app.models.document import Document
@@ -73,6 +73,13 @@ class DocumentService:
         )
 
         self.db.add(document)
+        self.db.commit()
+        self.db.refresh(document)
+
+        index_document(document)
+
+        document.status = "indexed"
+
         self.db.commit()
         self.db.refresh(document)
 
