@@ -303,17 +303,6 @@ Answer + Sources + Confidence
 
 ---
 
-# 📸 Screenshots
-
-> *(Add screenshots after deployment.)*
-
-- Home Page
-- Collections
-- Document Upload
-- AI Chat
-- Swagger Documentation
-- Docker Containers
-
 ---
 
 # 🔮 Future Improvements
