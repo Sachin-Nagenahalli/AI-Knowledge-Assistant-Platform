@@ -1,15 +1,65 @@
+from pathlib import Path
+
 from pypdf import PdfReader
 
 
-def extract_text(pdf_path: str) -> str:
-    reader = PdfReader(pdf_path)
+def extract_text(
+    pdf_path: str,
+) -> str:
+    """
+    Extract text from a PDF document.
+    """
 
-    text = ""
+    pdf_file = Path(pdf_path)
 
-    for page in reader.pages:
-        extracted = page.extract_text()
+    if not pdf_file.exists():
 
-        if extracted:
-            text += extracted + "\n"
+        raise FileNotFoundError(
+            f"PDF not found: {pdf_path}"
+        )
 
-    return text
+    try:
+
+        reader = PdfReader(pdf_file)
+
+    except Exception as e:
+
+        raise RuntimeError(
+            f"Unable to open PDF: {e}"
+        )
+
+    pages = []
+
+    for page_number, page in enumerate(
+        reader.pages,
+        start=1,
+    ):
+
+        try:
+
+            text = page.extract_text()
+
+            if text:
+
+                pages.append(
+                    text.strip()
+                )
+
+        except Exception as e:
+
+            print(
+                f"Skipping page {page_number}: {e}"
+            )
+
+    document_text = "\n\n".join(
+        pages
+    )
+
+    if not document_text.strip():
+
+        raise RuntimeError(
+            "No readable text found in the PDF."
+        )
+
+    return document_text
+    

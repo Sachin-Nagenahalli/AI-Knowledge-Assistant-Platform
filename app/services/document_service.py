@@ -39,7 +39,9 @@ class DocumentService:
 
         collection = (
             self.db.query(Collection)
-            .filter(Collection.id == collection_id)
+            .filter(
+                Collection.id == collection_id
+            )
             .first()
         )
 
@@ -50,15 +52,22 @@ class DocumentService:
                 detail="Collection not found",
             )
 
-        upload_path = Path(settings.DOCUMENT_DIR)
+        upload_path = Path(
+            settings.DOCUMENT_DIR
+        )
+
         upload_path.mkdir(
             parents=True,
             exist_ok=True,
         )
 
-        destination = upload_path / file.filename
+        destination = (
+            upload_path /
+            file.filename
+        )
 
         with destination.open("wb") as buffer:
+
             shutil.copyfileobj(
                 file.file,
                 buffer,
@@ -88,25 +97,63 @@ class DocumentService:
             )
 
         document = Document(
+
             filename=file.filename,
+
             filepath=str(destination),
+
             file_hash=file_hash,
-            status="uploaded",
+
+            status="uploading",
+
             collection_id=collection_id,
+
         )
 
-        self.db.add(document)
-        self.db.commit()
-        self.db.refresh(document)
+        try:
 
-        index_document(document)
+            self.db.add(document)
 
-        document.status = "indexed"
+            self.db.commit()
 
-        self.db.commit()
-        self.db.refresh(document)
+            self.db.refresh(document)
 
-        return document
+            chunk_count = index_document(
+                document
+            )
+
+            document.status = "indexed"
+
+            self.db.commit()
+
+            self.db.refresh(document)
+
+            print(
+                f"Indexed {chunk_count} chunks."
+            )
+
+            return document
+
+        except Exception as e:
+
+            self.db.rollback()
+
+            if destination.exists():
+
+                destination.unlink()
+
+            if document.id is not None:
+
+                self.db.query(Document).filter(
+                    Document.id == document.id
+                ).delete()
+
+                self.db.commit()
+
+            raise HTTPException(
+                status_code=500,
+                detail=f"Document indexing failed: {e}",
+            )
 
     def delete_document(
         self,
@@ -128,21 +175,22 @@ class DocumentService:
                 detail="Document not found",
             )
 
-        # Delete vectors from ChromaDB
         delete_document_chunks(
             document.id
         )
 
-        # Delete PDF from disk
         file_path = Path(
             document.filepath
         )
 
         if file_path.exists():
+
             file_path.unlink()
 
-        # Delete database record
-        self.db.delete(document)
+        self.db.delete(
+            document
+        )
+
         self.db.commit()
 
         return {

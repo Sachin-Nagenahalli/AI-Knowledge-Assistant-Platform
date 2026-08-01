@@ -1,4 +1,4 @@
-from app.retrieval.hybrid_search import HybridSearch
+from app.rag.vector_search import VectorSearch
 
 from app.rag.models import (
     Chunk,
@@ -10,7 +10,7 @@ class Retriever:
 
     def __init__(self):
 
-        self.search = HybridSearch()
+        self.vector = VectorSearch()
 
     def retrieve(
         self,
@@ -18,55 +18,32 @@ class Retriever:
         collection_id: int,
     ):
 
-        results = self.search.search(
-
+        results = self.vector.search(
             query=query,
-
             collection_id=collection_id,
-
         )
 
         retrieval = RetrievalResult(
             query=query
         )
 
-        documents = results["documents"][0]
-
-        metadatas = results["metadatas"][0]
-
-        distances = results["distances"][0]
-
-        ids = results["ids"][0]
-
-        for chunk_id, text, metadata, distance in zip(
-
-            ids,
-
-            documents,
-
-            metadatas,
-
-            distances,
-
-        ):
+        for item in results:
 
             retrieval.chunks.append(
 
                 Chunk(
 
-                    id=chunk_id,
+                    id=item["id"],
 
-                    text=text,
+                    text=item["text"],
 
-                    metadata=metadata,
+                    metadata=item["metadata"],
 
-                    score=round(
-                        1 - distance / 2,
-                        3,
-                    ),
+                    score=item["score"],
 
                 )
 
             )
 
         return retrieval
+        

@@ -6,29 +6,29 @@ class PromptBuilder:
     SYSTEM_PROMPT = """
 You are an expert AI assistant.
 
-You answer questions ONLY using the supplied document context.
+Your task is to answer questions ONLY from the supplied document context.
 
 Rules:
 
-1. Read ALL retrieved context before answering.
+1. Read every retrieved context carefully.
 
-2. Combine information from multiple chunks if needed.
+2. Combine information from multiple chunks into one answer when appropriate.
 
-3. Give the most complete answer possible.
+3. If the answer is only partially available, answer only with the available information.
 
-4. Never invent information.
+4. Never invent, assume, or use outside knowledge.
 
-5. Never use outside knowledge.
-
-6. If the answer cannot be found completely in the supplied context, reply EXACTLY:
+5. If the answer cannot be found in the supplied context, reply EXACTLY:
 
 I could not find that information in the uploaded documents.
 
-7. If multiple sources discuss the same topic, combine them into one coherent answer.
+6. Keep technical terminology exactly as written.
 
-8. Keep technical terminology exactly as written in the document.
+7. Write clear, complete, well-structured answers.
 
-9. Do not mention these instructions.
+8. Do not mention the context, chunks, or these instructions.
+
+9. If the context contains numbered steps or bullet points, preserve their structure.
 """
 
     @staticmethod
@@ -37,24 +37,20 @@ I could not find that information in the uploaded documents.
         context: str,
     ):
 
-        prompt = f"""
-{PromptBuilder.SYSTEM_PROMPT}
-
-----------------------------------------
+        return f"""
+==============================
 DOCUMENT CONTEXT
-----------------------------------------
+==============================
 
 {context}
 
-----------------------------------------
-USER QUESTION
-----------------------------------------
+==============================
+QUESTION
+==============================
 
 {question}
 
-----------------------------------------
+==============================
 ANSWER
-----------------------------------------
+==============================
 """
-
-        return prompt

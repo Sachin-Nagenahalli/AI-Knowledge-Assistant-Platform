@@ -17,16 +17,44 @@ class Generator:
         retrieval: RetrievalResult,
     ) -> AnswerResult:
 
-        # Build context from the top retrieved chunks
+        # ----------------------------
+        # Build context
+        # ----------------------------
+
+        seen = set()
+
+        context_chunks = []
+
+        for chunk in retrieval.chunks:
+
+            if chunk.id in seen:
+                continue
+
+            seen.add(chunk.id)
+
+            context_chunks.append(
+                chunk.text
+            )
+
+            if len(context_chunks) == 5:
+                break
+
         context = "\n\n".join(
-            chunk.text
-            for chunk in retrieval.chunks[:3]
+            context_chunks
         )
+
+        # ----------------------------
+        # Build Prompt
+        # ----------------------------
 
         prompt = PromptBuilder.build(
             question=question,
             context=context,
         )
+
+        # ----------------------------
+        # Generate Answer
+        # ----------------------------
 
         response = ollama.chat(
             model=settings.LLM_MODEL,
@@ -42,17 +70,43 @@ class Generator:
             answer=response.message.content
         )
 
-        # Attach sources
-        for chunk in retrieval.chunks[:3]:
+        # ----------------------------
+        # Attach Sources
+        # ----------------------------
+
+        seen_sources = set()
+
+        for chunk in retrieval.chunks:
+
+            key = (
+                chunk.metadata["document_id"],
+                chunk.metadata["chunk"],
+            )
+
+            if key in seen_sources:
+                continue
+
+            seen_sources.add(key)
 
             answer.sources.append(
+
                 Source(
+
                     filename=chunk.metadata["filename"],
+
                     document_id=chunk.metadata["document_id"],
+
                     collection_id=chunk.metadata["collection_id"],
+
                     chunk=chunk.metadata["chunk"],
+
                     score=chunk.score,
+
                 )
+
             )
+
+            if len(answer.sources) == 5:
+                break
 
         return answer
