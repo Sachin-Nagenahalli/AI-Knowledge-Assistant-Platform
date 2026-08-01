@@ -1,0 +1,37 @@
+/* Hide Streamlit default menu */
+#MainMenu {
+    visibility: hidden;
+}
+
+footer {
+    visibility: hidden;
+}
+
+header {
+    visibility: hidden;
+}
+
+/* Main page */
+.block-container {
+    padding-top: 2rem;
+    padding-bottom: 2rem;
+}
+
+/* Metric cards */
+div[data-testid="stMetric"] {
+    border: 1px solid #333;
+    border-radius: 12px;
+    padding: 15px;
+    background-color: #1f1f1f;
+}
+
+/* Buttons */
+.stButton>button {
+    border-radius: 8px;
+    width: 100%;
+}
+
+/* Chat input */
+.stChatInputContainer {
+    border-radius: 12px;
+}

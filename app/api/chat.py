@@ -13,4 +13,7 @@ service = ChatService()
 
 @router.post("")
 def chat(request: ChatRequest):
-    return service.ask(request.question)
+    return service.ask(
+        request.collection_id,
+        request.question,
+    )

@@ -1,4 +1,4 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, Query
 
 from app.services.search_service import SearchService
 
@@ -12,6 +12,10 @@ service = SearchService()
 
 @router.get("")
 def search(
-    query: str,
+    query: str = Query(...),
+    collection_id: int = Query(...),
 ):
-    return service.search(query)
+    return service.search(
+        query=query,
+        collection_id=collection_id,
+    )
