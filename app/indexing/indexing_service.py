@@ -4,11 +4,13 @@ from app.indexing.vector_store import store_chunks
 
 
 def index_document(document):
-    text = extract_text(document.filepath)
+    text = extract_text(
+        document.filepath
+    )
 
     chunks = chunk_text(text)
 
     store_chunks(
-        document.id,
+        document,
         chunks,
     )

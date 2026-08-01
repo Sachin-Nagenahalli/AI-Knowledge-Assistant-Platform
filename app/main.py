@@ -1,33 +1,35 @@
 from fastapi import FastAPI
-# Register SQLAlchemy models
+
+from app.api.collection import router as collection_router
+from app.api.document import router as document_router
 from app.api.search import router as search_router
 from app.api.chat import router as chat_router
-from app.models.collection import Collection
-from app.models.document import Document
-from app.api.collection import router as collection_router
-from app.core.config import settings
-from app.api.document import router as document_router
+from app.api.document_management import router as document_management_router
+
 app = FastAPI(
-    title=settings.PROJECT_NAME,
-    version=settings.API_VERSION,
+    title="AI Knowledge Platform",
+    version="1.0.0",
+    description="Local RAG API built with FastAPI, ChromaDB, SQLite, and Ollama",
 )
+
+# Collection APIs
+app.include_router(collection_router)
+
+# Document Upload APIs
+app.include_router(document_router)
+
+# Document Management APIs
+app.include_router(document_management_router)
+
+# Semantic Search APIs
+app.include_router(search_router)
+
+# AI Chat APIs
+app.include_router(chat_router)
 
 
 @app.get("/")
 def root():
     return {
-        "message": "Welcome to AI Knowledge Platform"
+        "message": "AI Knowledge Platform API is running successfully!"
     }
-
-
-@app.get("/health")
-def health():
-    return {
-        "status": "healthy"
-    }
-
-
-app.include_router(collection_router)
-app.include_router(document_router)
-app.include_router(search_router)
-app.include_router(chat_router)

@@ -9,6 +9,7 @@ class SearchService:
     def search(
         self,
         query: str,
+        collection_id: int,
         top_k: int = 5,
     ):
         embedding = create_embedding(query)
@@ -16,6 +17,12 @@ class SearchService:
         results = self.collection.query(
             query_embeddings=[embedding],
             n_results=top_k,
+            where={
+                "document_id": {
+                    "$gte": 0
+                }
+            }
         )
 
         return results
+        

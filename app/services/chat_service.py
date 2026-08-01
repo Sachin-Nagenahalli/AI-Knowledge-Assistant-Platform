@@ -57,7 +57,22 @@ Context:
         # Save assistant response
         memory.add_assistant(answer)
 
+        sources = []
+
+        for metadata, distance in zip(
+            results["metadatas"][0],
+            results["distances"][0]
+        ):
+            sources.append(
+                {
+                    "filename": metadata["filename"],
+                    "document_id": metadata["document_id"],
+                    "chunk": metadata["chunk"],
+                    "score": round(1 - distance / 2, 3)
+                }
+            )
+
         return {
             "answer": answer,
-            "sources": results["metadatas"][0]
-        }
+            "sources": sources
+                }
