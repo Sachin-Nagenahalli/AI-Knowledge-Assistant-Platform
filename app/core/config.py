@@ -25,7 +25,7 @@ class Settings(BaseSettings):
     # ==========================
     # Ollama Settings
     # ==========================
-    OLLAMA_URL: str = "http://localhost:11434"
+    OLLAMA_URL: str = "http://host.docker.internal:11434"
 
     LLM_MODEL: str = "qwen2.5:3b"
     EMBEDDING_MODEL: str = "embeddinggemma"

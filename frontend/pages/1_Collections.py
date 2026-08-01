@@ -16,6 +16,10 @@ st.title("📂 Collections")
 
 st.divider()
 
+# ---------------------------------
+# Create Collection
+# ---------------------------------
+
 with st.expander("➕ Create Collection"):
 
     with st.form("create_collection"):
@@ -30,22 +34,47 @@ with st.expander("➕ Create Collection"):
 
         if submitted:
 
-            response = create_collection(
-                name,
-                description,
-            )
+            name = name.strip()
+            description = description.strip()
 
-            if response.status_code == 200:
-                st.success("Created")
-                st.rerun()
+            if not name:
 
-            elif response.status_code == 409:
-                st.warning("Already exists")
+                st.error(
+                    "Collection name cannot be empty."
+                )
 
             else:
-                st.error(response.text)
+
+                response = create_collection(
+                    name,
+                    description,
+                )
+
+                if response.status_code == 200:
+
+                    st.success(
+                        "Collection created successfully."
+                    )
+
+                    st.rerun()
+
+                elif response.status_code == 409:
+
+                    st.warning(
+                        "Collection already exists."
+                    )
+
+                else:
+
+                    st.error(
+                        response.text
+                    )
 
 st.divider()
+
+# ---------------------------------
+# Collection List
+# ---------------------------------
 
 collections = get_collections()
 
@@ -53,35 +82,68 @@ st.subheader(
     f"Collections ({len(collections)})"
 )
 
-for collection in collections:
+if not collections:
 
-    with st.container(border=True):
+    st.info(
+        "No collections available."
+    )
 
-        col1, col2 = st.columns([6, 1])
+else:
 
-        with col1:
+    for collection in collections:
 
-            st.markdown(
-                f"### 📁 {collection['name']}"
-            )
+        with st.container(border=True):
 
-            st.write(
-                collection["description"]
-            )
+            col1, col2 = st.columns([6, 1])
 
-            st.caption(
-                f"ID : {collection['id']}"
-            )
+            with col1:
 
-        with col2:
-
-            if st.button(
-                "🗑",
-                key=collection["id"],
-            ):
-
-                delete_collection(
-                    collection["id"]
+                st.markdown(
+                    f"### 📁 {collection['name']}"
                 )
 
-                st.rerun()
+                description = collection.get(
+                    "description",
+                    ""
+                )
+
+                if description:
+
+                    st.write(
+                        description
+                    )
+
+                else:
+
+                    st.caption(
+                        "No description."
+                    )
+
+                st.caption(
+                    f"ID : {collection['id']}"
+                )
+
+            with col2:
+
+                if st.button(
+                    "🗑",
+                    key=collection["id"],
+                ):
+
+                    response = delete_collection(
+                        collection["id"]
+                    )
+
+                    if response.status_code == 200:
+
+                        st.success(
+                            "Collection deleted successfully."
+                        )
+
+                        st.rerun()
+
+                    else:
+
+                        st.error(
+                            response.text
+                        )

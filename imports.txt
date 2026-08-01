@@ -1,0 +1,117 @@
+app/core/config.py:from pydantic_settings import BaseSettings, SettingsConfigDict
+app/core/database.py:from sqlalchemy import create_engine
+app/core/database.py:from sqlalchemy.orm import declarative_base, sessionmaker
+app/core/database.py:from app.core.config import settings
+app/core/logger.py:import logging
+app/core/logger.py:import os
+app/core/logger.py:from app.core.config import settings
+app/core/chroma.py:import chromadb
+app/core/chroma.py:from app.core.config import settings
+app/models/__init__.py:from app.models.collection import Collection
+app/models/__init__.py:from app.models.document import Document
+app/models/document.py:from sqlalchemy import Column, DateTime, ForeignKey, Integer, String
+app/models/document.py:from sqlalchemy.orm import relationship
+app/models/document.py:from sqlalchemy.sql import func
+app/models/document.py:from app.core.database import Base
+app/models/collection.py:from sqlalchemy import Column, DateTime, Integer, String
+app/models/collection.py:from sqlalchemy.sql import func
+app/models/collection.py:from sqlalchemy.orm import relationship
+app/models/collection.py:from app.core.database import Base
+app/rag/validator.py:from app.rag.models import (
+app/rag/models.py:from dataclasses import dataclass, field
+app/rag/retriever.py:from app.rag.vector_search import VectorSearch
+app/rag/retriever.py:from app.rag.models import (
+app/rag/vector_search.py:from app.core.chroma import get_collection
+app/rag/vector_search.py:from app.indexing.embedder import create_embedding
+app/rag/generator.py:import ollama
+app/rag/generator.py:from app.core.config import settings
+app/rag/generator.py:from app.indexing.prompt_builder import PromptBuilder
+app/rag/generator.py:from app.rag.models import (
+app/rag/engine.py:from app.rag.generator import Generator
+app/rag/engine.py:from app.rag.retriever import Retriever
+app/rag/engine.py:from app.rag.validator import Validator
+app/schemas/chat.py:from pydantic import BaseModel
+app/schemas/document.py:from datetime import datetime
+app/schemas/document.py:from pydantic import BaseModel, ConfigDict
+app/schemas/collection.py:from pydantic import BaseModel
+app/schemas/collection.py:from datetime import datetime
+app/api/document_management.py:from fastapi import APIRouter, Depends
+app/api/document_management.py:from sqlalchemy.orm import Session
+app/api/document_management.py:from app.api.dependencies import get_db
+app/api/document_management.py:from app.services.document_management_service import (
+app/api/chat.py:from fastapi import APIRouter, HTTPException
+app/api/chat.py:from app.schemas.chat import ChatRequest
+app/api/chat.py:from app.services.chat_service import ChatService
+app/api/document.py:from fastapi import APIRouter, Depends, File, UploadFile
+app/api/document.py:from sqlalchemy.orm import Session
+app/api/document.py:from app.api.dependencies import get_db
+app/api/document.py:from app.schemas.document import DocumentResponse
+app/api/document.py:from app.services.document_service import DocumentService
+app/api/collection.py:from fastapi import APIRouter, Depends
+app/api/collection.py:from sqlalchemy.orm import Session
+app/api/collection.py:from app.api.dependencies import get_db
+app/api/collection.py:from app.schemas.collection import (
+app/api/collection.py:from app.services.collection_service import CollectionService
+app/api/search.py:from fastapi import APIRouter, Query
+app/api/search.py:from app.services.search_service import SearchService
+app/api/dependencies.py:from sqlalchemy.orm import Session
+app/api/dependencies.py:from app.core.database import SessionLocal
+app/indexing/metadata.py:from pathlib import Path
+app/indexing/vector_store.py:from app.core.chroma import get_collection
+app/indexing/vector_store.py:from app.indexing.embedder import create_embedding
+app/indexing/vector_store.py:from app.indexing.metadata import build_metadata
+app/indexing/pdf_loader.py:from pathlib import Path
+app/indexing/pdf_loader.py:from pypdf import PdfReader
+app/indexing/pdf_loader.py:from app.core.logger import logger
+app/indexing/indexing_service.py:from app.indexing.pdf_loader import extract_text
+app/indexing/indexing_service.py:from app.indexing.semantic_chunker import semantic_chunk
+app/indexing/indexing_service.py:from app.indexing.vector_store import store_chunks
+app/indexing/embedder.py:import ollama
+app/indexing/embedder.py:from app.core.config import settings
+app/indexing/semantic_chunker.py:import re
+app/main.py:from fastapi import FastAPI
+app/main.py:import ollama
+app/main.py:from app.api.chat import router as chat_router
+app/main.py:from app.api.collection import router as collection_router
+app/main.py:from app.api.document import router as document_router
+app/main.py:from app.api.document_management import router as document_management_router
+app/main.py:from app.api.search import router as search_router
+app/main.py:from app.core.chroma import get_collection
+app/main.py:from app.core.database import engine
+app/services/chat_service.py:from app.rag.engine import RAGEngine
+app/services/chat_service.py:from app.services.memory_service import MemoryService
+app/services/document_service.py:import hashlib
+app/services/document_service.py:import shutil
+app/services/document_service.py:from pathlib import Path
+app/services/document_service.py:from fastapi import HTTPException, UploadFile
+app/services/document_service.py:from sqlalchemy.orm import Session
+app/services/document_service.py:from app.core.config import settings
+app/services/document_service.py:from app.core.logger import logger
+app/services/document_service.py:from app.indexing.indexing_service import index_document
+app/services/document_service.py:from app.indexing.vector_store import delete_document_chunks
+app/services/document_service.py:from app.models.collection import Collection
+app/services/document_service.py:from app.models.document import Document
+app/services/collection_service.py:from fastapi import HTTPException
+app/services/collection_service.py:from sqlalchemy.exc import IntegrityError
+app/services/collection_service.py:from sqlalchemy.orm import Session
+app/services/collection_service.py:from app.models.collection import Collection
+app/services/collection_service.py:from app.models.document import Document
+app/services/collection_service.py:from app.schemas.collection import CollectionCreate
+app/services/document_management_service.py:import os
+app/services/document_management_service.py:from sqlalchemy.orm import Session
+app/services/document_management_service.py:from app.models.document import Document
+app/services/document_management_service.py:from app.core.chroma import get_collection
+app/services/search_service.py:from app.core.chroma import get_collection
+app/services/search_service.py:from app.indexing.embedder import create_embedding
+frontend/components/sidebar.py:import streamlit as st
+frontend/components/api.py:import os
+frontend/components/api.py:import requests
+frontend/components/styles.py:import streamlit as st
+frontend/app.py:import streamlit as st
+frontend/app.py:from components.sidebar import show_sidebar
+frontend/pages/2_Documents.py:import streamlit as st
+frontend/pages/2_Documents.py:from components.api import (
+frontend/pages/1_Collections.py:import streamlit as st
+frontend/pages/1_Collections.py:from components.api import (
+frontend/pages/3_Chat.py:import streamlit as st
+frontend/pages/3_Chat.py:from components.api import (

@@ -1,6 +1,12 @@
+import os
+
 import requests
 
-BASE_URL = "http://127.0.0.1:8000"
+
+BASE_URL = os.getenv(
+    "BACKEND_URL",
+    "http://127.0.0.1:8000",
+)
 
 
 # -------------------------
@@ -11,6 +17,7 @@ def get_collections():
     response = requests.get(
         f"{BASE_URL}/collections"
     )
+    response.raise_for_status()
     return response.json()
 
 
@@ -43,6 +50,7 @@ def get_documents():
     response = requests.get(
         f"{BASE_URL}/documents"
     )
+    response.raise_for_status()
     return response.json()
 
 
@@ -89,5 +97,7 @@ def ask_question(
             "question": question,
         },
     )
+
+    response.raise_for_status()
 
     return response.json()

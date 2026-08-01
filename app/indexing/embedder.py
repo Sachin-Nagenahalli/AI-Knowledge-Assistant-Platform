@@ -3,6 +3,11 @@ import ollama
 from app.core.config import settings
 
 
+client = ollama.Client(
+    host=settings.OLLAMA_URL
+)
+
+
 def create_embedding(text: str):
     """
     Generate an embedding using the configured
@@ -23,7 +28,7 @@ def create_embedding(text: str):
 
     try:
 
-        response = ollama.embed(
+        response = client.embed(
             model=settings.EMBEDDING_MODEL,
             input=text,
         )
@@ -34,7 +39,6 @@ def create_embedding(text: str):
             f"Ollama embedding request failed: {e}"
         )
 
-    # Ollama returns a dictionary
     embeddings = response.get(
         "embeddings",
         []

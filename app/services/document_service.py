@@ -6,6 +6,7 @@ from fastapi import HTTPException, UploadFile
 from sqlalchemy.orm import Session
 
 from app.core.config import settings
+from app.core.logger import logger
 from app.indexing.indexing_service import index_document
 from app.indexing.vector_store import delete_document_chunks
 from app.models.collection import Collection
@@ -50,6 +51,31 @@ class DocumentService:
             raise HTTPException(
                 status_code=404,
                 detail="Collection not found",
+            )
+
+        # ---------------------------------
+        # Validate PDF
+        # ---------------------------------
+
+        if not file.filename:
+
+            raise HTTPException(
+                status_code=400,
+                detail="No file selected.",
+            )
+
+        if not file.filename.lower().endswith(".pdf"):
+
+            raise HTTPException(
+                status_code=400,
+                detail="Only PDF files are allowed.",
+            )
+
+        if file.content_type != "application/pdf":
+
+            raise HTTPException(
+                status_code=400,
+                detail="Invalid PDF file.",
             )
 
         upload_path = Path(
@@ -128,8 +154,8 @@ class DocumentService:
 
             self.db.refresh(document)
 
-            print(
-                f"Indexed {chunk_count} chunks."
+            logger.info(
+                f"Indexed {chunk_count} chunks for document '{document.filename}'."
             )
 
             return document
@@ -144,11 +170,25 @@ class DocumentService:
 
             if document.id is not None:
 
+                try:
+
+                    delete_document_chunks(
+                        document.id
+                    )
+
+                except Exception:
+
+                    pass
+
                 self.db.query(Document).filter(
                     Document.id == document.id
                 ).delete()
 
                 self.db.commit()
+
+            logger.exception(
+                f"Document indexing failed: {e}"
+            )
 
             raise HTTPException(
                 status_code=500,
@@ -192,6 +232,10 @@ class DocumentService:
         )
 
         self.db.commit()
+
+        logger.info(
+            f"Deleted document '{document.filename}'."
+        )
 
         return {
             "message": "Document deleted successfully"

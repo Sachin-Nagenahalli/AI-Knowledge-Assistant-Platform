@@ -6,13 +6,15 @@ from app.indexing.metadata import build_metadata
 collection = get_collection("documents")
 
 
-def store_chunks(document, chunks):
+def store_chunks(
+    document,
+    chunks,
+):
+    """
+    Generate embeddings and store chunks in ChromaDB.
+    """
 
     records = []
-
-    print("=" * 80)
-    print("Starting indexing...")
-    print("Chunks received:", len(chunks))
 
     for index, chunk in enumerate(chunks):
 
@@ -21,11 +23,7 @@ def store_chunks(document, chunks):
         if not chunk:
             continue
 
-        print(f"Embedding chunk {index}...")
-
         embedding = create_embedding(chunk)
-
-        print("Embedding length:", len(embedding))
 
         metadata = build_metadata(
             document=document,
@@ -42,9 +40,11 @@ def store_chunks(document, chunks):
             }
         )
 
-    print("Total records:", len(records))
+    if not records:
 
-    print("Calling collection.add()...")
+        raise RuntimeError(
+            "No valid chunks available for indexing."
+        )
 
     collection.add(
         ids=[r["id"] for r in records],
@@ -53,10 +53,13 @@ def store_chunks(document, chunks):
         metadatas=[r["metadata"] for r in records],
     )
 
-    print("collection.add() SUCCESS")
 
-
-def delete_document_chunks(document_id: int):
+def delete_document_chunks(
+    document_id: int,
+):
+    """
+    Remove all chunks belonging to a document.
+    """
 
     results = collection.get(
         where={
@@ -64,7 +67,13 @@ def delete_document_chunks(document_id: int):
         }
     )
 
-    ids = results.get("ids", [])
+    ids = results.get(
+        "ids",
+        []
+    )
 
     if ids:
-        collection.delete(ids=ids)
+
+        collection.delete(
+            ids=ids
+        )

@@ -9,6 +9,11 @@ from app.rag.models import (
 )
 
 
+client = ollama.Client(
+    host=settings.OLLAMA_URL
+)
+
+
 class Generator:
 
     def generate(
@@ -18,7 +23,21 @@ class Generator:
     ) -> AnswerResult:
 
         # ----------------------------
-        # Build context
+        # No Context Found
+        # ----------------------------
+
+        if not retrieval.chunks:
+
+            answer = AnswerResult(
+                answer="I could not find that information in the uploaded documents."
+            )
+
+            answer.confidence = 0
+
+            return answer
+
+        # ----------------------------
+        # Build Context
         # ----------------------------
 
         seen = set()
@@ -56,15 +75,23 @@ class Generator:
         # Generate Answer
         # ----------------------------
 
-        response = ollama.chat(
-            model=settings.LLM_MODEL,
-            messages=[
-                {
-                    "role": "system",
-                    "content": prompt,
-                }
-            ],
-        )
+        try:
+
+            response = client.chat(
+                model=settings.LLM_MODEL,
+                messages=[
+                    {
+                        "role": "system",
+                        "content": prompt,
+                    }
+                ],
+            )
+
+        except Exception as e:
+
+            raise RuntimeError(
+                f"Ollama generation failed: {e}"
+            )
 
         answer = AnswerResult(
             answer=response.message.content
@@ -108,5 +135,17 @@ class Generator:
 
             if len(answer.sources) == 5:
                 break
+
+        if answer.sources:
+
+            answer.confidence = round(
+                sum(source.score for source in answer.sources)
+                / len(answer.sources),
+                3,
+            )
+
+        else:
+
+            answer.confidence = 0
 
         return answer

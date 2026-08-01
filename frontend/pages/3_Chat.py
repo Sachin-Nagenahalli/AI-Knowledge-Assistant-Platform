@@ -1,138 +1,149 @@
 import streamlit as st
 
 from components.api import (
-    ask_question,
+    create_collection,
+    delete_collection,
     get_collections,
 )
 
 st.set_page_config(
-    page_title="AI Chat",
-    page_icon="💬",
+    page_title="Collections",
+    page_icon="📂",
     layout="wide",
 )
 
-st.title("💬 AI Knowledge Chat")
-
-collections = get_collections()
-
-if not collections:
-    st.warning("Create a collection first.")
-    st.stop()
-
-collection_map = {
-    collection["name"]: collection
-    for collection in collections
-}
-
-selected_name = st.selectbox(
-    "Select Collection",
-    list(collection_map.keys()),
-)
-
-selected_collection = collection_map[selected_name]
+st.title("📂 Collections")
 
 st.divider()
 
-if "messages" not in st.session_state:
-    st.session_state.messages = []
+# ---------------------------------
+# Create Collection
+# ---------------------------------
 
-# -----------------------------
-# Display Previous Conversation
-# -----------------------------
-for message in st.session_state.messages:
+with st.expander("➕ Create Collection"):
 
-    with st.chat_message(message["role"]):
+    with st.form("create_collection"):
 
-        st.markdown(message["content"])
+        name = st.text_input("Name")
 
-        if (
-            message["role"] == "assistant"
-            and message.get("sources")
-        ):
+        description = st.text_area("Description")
 
-            with st.expander("📚 Sources"):
+        submitted = st.form_submit_button(
+            "Create"
+        )
 
-                for source in message["sources"]:
+        if submitted:
 
-                    st.markdown(
-                        f"""
-### 📄 {source['filename']}
+            name = name.strip()
+            description = description.strip()
 
-- **Document ID:** {source['document_id']}
-- **Chunk:** {source['chunk']}
-- **Similarity:** {source['score'] * 100:.1f}%
-"""
-                    )
+            if not name:
 
-# -----------------------------
-# User Input
-# -----------------------------
-question = st.chat_input(
-    "Ask anything about your documents..."
-)
-
-if question:
-
-    st.session_state.messages.append(
-        {
-            "role": "user",
-            "content": question,
-        }
-    )
-
-    with st.chat_message("user"):
-        st.markdown(question)
-
-    with st.chat_message("assistant"):
-
-        with st.spinner("Thinking..."):
-
-            response = ask_question(
-                selected_collection["id"],
-                question,
-            )
-
-            answer = response.get(
-                "answer",
-                "No answer returned."
-            )
-
-            st.markdown(answer)
-
-            sources = response.get(
-                "sources",
-                []
-            )
-
-            if sources:
-
-                with st.expander(
-                    "📚 Sources",
-                    expanded=False,
-                ):
-
-                    for source in sources:
-
-                        st.markdown(
-                            f"""
-### 📄 {source['filename']}
-
-- **Document ID:** {source['document_id']}
-- **Chunk:** {source['chunk']}
-- **Similarity:** {source['score'] * 100:.1f}%
-"""
-                        )
+                st.error(
+                    "Collection name cannot be empty."
+                )
 
             else:
 
-                st.info(
-                    "No source documents were returned."
+                response = create_collection(
+                    name,
+                    description,
                 )
 
-    st.session_state.messages.append(
-        {
-            "role": "assistant",
-            "content": answer,
-            "sources": sources,
-        }
+                if response.status_code == 200:
+
+                    st.success(
+                        "Collection created successfully."
+                    )
+
+                    st.rerun()
+
+                elif response.status_code == 409:
+
+                    st.warning(
+                        "Collection already exists."
+                    )
+
+                else:
+
+                    st.error(
+                        response.text
+                    )
+
+st.divider()
+
+# ---------------------------------
+# Collection List
+# ---------------------------------
+
+collections = get_collections()
+
+st.subheader(
+    f"Collections ({len(collections)})"
+)
+
+if not collections:
+
+    st.info(
+        "No collections available."
     )
+
+else:
+
+    for collection in collections:
+
+        with st.container(border=True):
+
+            col1, col2 = st.columns([6, 1])
+
+            with col1:
+
+                st.markdown(
+                    f"### 📁 {collection['name']}"
+                )
+
+                description = collection.get(
+                    "description",
+                    ""
+                )
+
+                if description:
+
+                    st.write(
+                        description
+                    )
+
+                else:
+
+                    st.caption(
+                        "No description."
+                    )
+
+                st.caption(
+                    f"ID : {collection['id']}"
+                )
+
+            with col2:
+
+                if st.button(
+                    "🗑",
+                    key=collection["id"],
+                ):
+
+                    response = delete_collection(
+                        collection["id"]
+                    )
+
+                    if response.status_code == 200:
+
+                        st.success(
+                            "Collection deleted successfully."
+                        )
+
+                        st.rerun()
+
+                    else:
+
+                        st.error(
+                            response.text
+                        )

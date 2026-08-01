@@ -2,6 +2,8 @@ from pathlib import Path
 
 from pypdf import PdfReader
 
+from app.core.logger import logger
+
 
 def extract_text(
     pdf_path: str,
@@ -23,6 +25,10 @@ def extract_text(
         reader = PdfReader(pdf_file)
 
     except Exception as e:
+
+        logger.exception(
+            f"Unable to open PDF: {e}"
+        )
 
         raise RuntimeError(
             f"Unable to open PDF: {e}"
@@ -47,7 +53,7 @@ def extract_text(
 
         except Exception as e:
 
-            print(
+            logger.warning(
                 f"Skipping page {page_number}: {e}"
             )
 
@@ -62,4 +68,3 @@ def extract_text(
         )
 
     return document_text
-    
