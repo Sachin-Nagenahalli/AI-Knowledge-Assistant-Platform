@@ -6,13 +6,16 @@ from app.schemas.document import DocumentResponse
 from app.services.document_service import DocumentService
 
 router = APIRouter(
-    prefix="/collections/{collection_id}/documents",
     tags=["Documents"],
 )
 
 
+# ----------------------------
+# Upload Document
+# ----------------------------
+
 @router.post(
-    "/upload",
+    "/collections/{collection_id}/documents/upload",
     response_model=DocumentResponse,
 )
 def upload_document(
@@ -25,4 +28,41 @@ def upload_document(
     return service.upload_document(
         collection_id=collection_id,
         file=file,
+    )
+
+
+# ----------------------------
+# List Documents
+# ----------------------------
+
+@router.get(
+    "/documents",
+    response_model=list[DocumentResponse],
+)
+def list_documents(
+    db: Session = Depends(get_db),
+):
+    return (
+        db.query(
+            __import__("app.models.document", fromlist=["Document"]).Document
+        )
+        .all()
+    )
+
+
+# ----------------------------
+# Delete Document
+# ----------------------------
+
+@router.delete(
+    "/documents/{document_id}",
+)
+def delete_document(
+    document_id: int,
+    db: Session = Depends(get_db),
+):
+    service = DocumentService(db)
+
+    return service.delete_document(
+        document_id
     )

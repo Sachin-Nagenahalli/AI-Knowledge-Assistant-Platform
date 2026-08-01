@@ -35,3 +35,22 @@ def store_chunks(document, chunks):
         documents=documents,
         metadatas=metadatas,
     )
+
+
+def delete_document_chunks(document_id: int):
+    """
+    Delete all vector embeddings belonging to one document.
+    """
+
+    results = collection.get(
+        where={
+            "document_id": document_id
+        }
+    )
+
+    ids = results.get("ids", [])
+
+    if ids:
+        collection.delete(
+            ids=ids
+        )

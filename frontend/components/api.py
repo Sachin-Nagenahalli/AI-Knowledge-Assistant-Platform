@@ -1,123 +1,93 @@
-import streamlit as st
+import requests
 
-from components.sidebar import show_sidebar
-from components.styles import load_css
-from components.api import (
-    get_collections,
-    get_documents,
-)
+BASE_URL = "http://127.0.0.1:8000"
 
-st.set_page_config(
-    page_title="AI Knowledge Platform",
-    page_icon="🤖",
-    layout="wide",
-)
 
-load_css()
+# -------------------------
+# Collections
+# -------------------------
 
-show_sidebar()
+def get_collections():
+    response = requests.get(
+        f"{BASE_URL}/collections"
+    )
+    return response.json()
 
-st.title("🤖 AI Knowledge Platform")
 
-st.caption(
-    "A Local Retrieval-Augmented Generation (RAG) System"
-)
-
-collections = get_collections()
-documents = get_documents()
-
-st.markdown("## 📊 Dashboard")
-
-col1, col2, col3 = st.columns(3)
-
-with col1:
-    st.metric(
-        "Collections",
-        len(collections),
+def create_collection(
+    name,
+    description,
+):
+    return requests.post(
+        f"{BASE_URL}/collections",
+        json={
+            "name": name,
+            "description": description,
+        },
     )
 
-with col2:
-    st.metric(
-        "Documents",
-        len(documents),
+
+def delete_collection(
+    collection_id,
+):
+    return requests.delete(
+        f"{BASE_URL}/collections/{collection_id}"
     )
 
-with col3:
-    st.metric(
-        "Backend",
-        "🟢 Online",
+
+# -------------------------
+# Documents
+# -------------------------
+
+def get_documents():
+    response = requests.get(
+        f"{BASE_URL}/documents"
     )
+    return response.json()
 
-st.divider()
 
-left, right = st.columns(2)
+def upload_document(
+    collection_id,
+    uploaded_file,
+):
 
-with left:
-
-    st.subheader("📂 Collections")
-
-    if collections:
-
-        for collection in collections:
-
-            with st.container(border=True):
-
-                st.markdown(
-                    f"### 📁 {collection['name']}"
-                )
-
-                st.write(
-                    collection["description"]
-                )
-
-    else:
-
-        st.info(
-            "No collections available."
+    files = {
+        "file": (
+            uploaded_file.name,
+            uploaded_file.getvalue(),
+            "application/pdf",
         )
+    }
 
-with right:
-
-    st.subheader("📄 Documents")
-
-    if documents:
-
-        for document in documents:
-
-            with st.container(border=True):
-
-                st.markdown(
-                    f"### 📄 {document['filename']}"
-                )
-
-                st.write(
-                    f"Status : {document['status']}"
-                )
-
-    else:
-
-        st.info(
-            "No documents uploaded."
-        )
-
-st.divider()
-
-st.subheader("⚙️ Models")
-
-col1, col2 = st.columns(2)
-
-with col1:
-
-    st.info("Embedding Model")
-
-    st.code(
-        "embeddinggemma"
+    return requests.post(
+        f"{BASE_URL}/collections/{collection_id}/documents/upload",
+        files=files,
     )
 
-with col2:
 
-    st.info("LLM")
-
-    st.code(
-        "qwen2.5:3b"
+def delete_document(
+    document_id,
+):
+    return requests.delete(
+        f"{BASE_URL}/documents/{document_id}"
     )
+
+
+# -------------------------
+# Chat
+# -------------------------
+
+def ask_question(
+    collection_id,
+    question,
+):
+
+    response = requests.post(
+        f"{BASE_URL}/chat",
+        json={
+            "collection_id": collection_id,
+            "question": question,
+        },
+    )
+
+    return response.json()

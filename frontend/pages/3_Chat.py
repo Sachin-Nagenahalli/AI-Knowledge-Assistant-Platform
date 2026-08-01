@@ -36,7 +36,9 @@ st.divider()
 if "messages" not in st.session_state:
     st.session_state.messages = []
 
-# Display previous messages
+# -----------------------------
+# Display Previous Conversation
+# -----------------------------
 for message in st.session_state.messages:
 
     with st.chat_message(message["role"]):
@@ -45,15 +47,26 @@ for message in st.session_state.messages:
 
         if (
             message["role"] == "assistant"
-            and "sources" in message
+            and message.get("sources")
         ):
 
             with st.expander("📚 Sources"):
 
                 for source in message["sources"]:
 
-                    st.write(source)
+                    st.markdown(
+                        f"""
+### 📄 {source['filename']}
 
+- **Document ID:** {source['document_id']}
+- **Chunk:** {source['chunk']}
+- **Similarity:** {source['score'] * 100:.1f}%
+"""
+                    )
+
+# -----------------------------
+# User Input
+# -----------------------------
 question = st.chat_input(
     "Ask anything about your documents..."
 )
@@ -79,12 +92,6 @@ if question:
                 question,
             )
 
-            # -------------------------
-            # DEBUG OUTPUT
-            # -------------------------
-            st.subheader("🐞 Debug Response")
-            st.json(response)
-
             answer = response.get(
                 "answer",
                 "No answer returned."
@@ -92,24 +99,40 @@ if question:
 
             st.markdown(answer)
 
-            if "sources" in response:
+            sources = response.get(
+                "sources",
+                []
+            )
 
-                with st.expander("📚 Sources", expanded=True):
+            if sources:
 
-                    for source in response["sources"]:
+                with st.expander(
+                    "📚 Sources",
+                    expanded=False,
+                ):
 
-                        st.json(source)
+                    for source in sources:
+
+                        st.markdown(
+                            f"""
+### 📄 {source['filename']}
+
+- **Document ID:** {source['document_id']}
+- **Chunk:** {source['chunk']}
+- **Similarity:** {source['score'] * 100:.1f}%
+"""
+                        )
 
             else:
 
-                st.warning(
-                    "No sources returned by the backend."
+                st.info(
+                    "No source documents were returned."
                 )
 
     st.session_state.messages.append(
         {
             "role": "assistant",
             "content": answer,
-            "sources": response.get("sources", []),
+            "sources": sources,
         }
     )
